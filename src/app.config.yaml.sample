@@ -1,0 +1,9 @@
+repository:
+  - repository: test
+    path: .
+    branch: test
+    secret: 1
+  - repository: test2
+    path: .
+    branch: test
+    secret: 2
