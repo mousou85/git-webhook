@@ -1,13 +1,20 @@
-import {Controller, Get} from '@nestjs/common';
+import {BadRequestException, Controller, Post} from '@nestjs/common';
 
 import {AppService} from '@app/app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private appService: AppService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Post('/')
+  webhook() {
+    // @Body() body: object // @Headers() headers: object,
+    const gitServiceName = this.appService.requestFrom();
+    if (!gitServiceName) {
+      throw new BadRequestException('Invalid request');
+    }
+
+    const headers = this.appService.getHeaders(gitServiceName);
+    console.log(headers);
   }
 }
