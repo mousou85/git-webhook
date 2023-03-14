@@ -4,7 +4,7 @@ import {ClsModule} from 'nestjs-cls';
 
 import appConfig from '@app/app.config';
 import {AppController} from '@app/app.controller';
-import {AppService} from '@app/app.service';
+import {AppService, GithubService} from '@app/service';
 
 @Module({
   imports: [
@@ -12,6 +12,6 @@ import {AppService} from '@app/app.service';
     ClsModule.forRoot({global: true, middleware: {mount: true}}),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, GithubService],
 })
 export class AppModule {}

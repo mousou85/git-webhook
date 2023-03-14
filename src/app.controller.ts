@@ -1,20 +1,23 @@
 import {BadRequestException, Controller, Post} from '@nestjs/common';
 
-import {AppService} from '@app/app.service';
+import {EGitService} from '@app/app.enum';
+import {GitServiceName} from '@app/decorator';
+import {GithubService} from '@app/service';
 
 @Controller()
 export class AppController {
-  constructor(private appService: AppService) {}
+  constructor(private githubService: GithubService) {}
 
   @Post('/')
-  webhook() {
-    // @Body() body: object // @Headers() headers: object,
-    const gitServiceName = this.appService.requestFrom();
+  webhook(@GitServiceName() gitServiceName: EGitService) {
     if (!gitServiceName) {
       throw new BadRequestException('Invalid request');
     }
 
-    const headers = this.appService.getHeaders(gitServiceName);
-    console.log(headers);
+    if (gitServiceName == 'github') {
+      this.githubService.eventProcessor();
+    }
+    // const headers = this.appService.getRequestHeaders(gitServiceName);
+    // console.log(headers);
   }
 }
