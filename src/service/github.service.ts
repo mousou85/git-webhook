@@ -1,10 +1,11 @@
+import * as crypto from 'crypto';
+
 import {BadRequestException, Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {ClsService} from 'nestjs-cls';
 
-import {IGithubPayload, IRepositoryConfig} from '@app/interface';
+import {IRepositoryConfig, IRequestInfo} from '@app/interface';
 import {AppService} from '@app/service/app.service';
-import {githubHeaderKeys, TGithubHeaders} from '@app/type';
 
 @Injectable()
 export class GithubService {
@@ -14,37 +15,45 @@ export class GithubService {
     private appService: AppService
   ) {}
 
-  getHeaders() {
+  getRequestInfo(): IRequestInfo {
     const headers = this.appService.getHeaders();
+    const payload = this.appService.getPayload();
 
-    let extractHeaders = {} as TGithubHeaders;
-    for (const key of githubHeaderKeys) {
-      extractHeaders[key] = headers[key] ?? headers[key.toLowerCase()];
+    const lowercaseHeaders = {};
+    for (const headerKey of Object.keys(headers)) {
+      lowercaseHeaders[headerKey.toLowerCase()] = headers[headerKey];
     }
-
-    return extractHeaders;
-  }
-
-  getPayload(): IGithubPayload {
-    const headers = this.getHeaders();
-    const body = this.appService.getPayload();
+    const branch = payload['ref'].replace('refs/heads/', '');
+    const signature = headers['x-hub-signature'].replace('sha1=', '');
 
     return {
-      repositoryName: body['repository']['name'],
-      repositoryFullName: body['repository']['full_name'],
-      ref: body['ref'],
-      action: headers['X-GitHub-Event'],
-      rawPayload: body,
+      gitServiceName: 'github',
+      contentType: headers['content-type'],
+      userAgent: headers['user-agent'],
+      action: headers['x-github-event'],
+      repositoryName: payload['repository']['name'],
+      branch: branch,
+      signature: signature,
+      rawHeaders: lowercaseHeaders,
+      rawPayload: payload,
     };
   }
 
-  verifySignature(secret: string, signature: string) {}
+  verifySignature(secret: string, signature: string, rawPayload: Record<string, any>) {
+    if (typeof secret != 'string') secret = (secret as any).toString();
+
+    const encryptSecret = crypto
+      .createHmac('sha1', secret)
+      .update(JSON.stringify(rawPayload))
+      .digest('hex');
+
+    return signature === encryptSecret;
+  }
 
   eventProcessor() {
-    const headers = this.getHeaders();
-    const payload = this.getPayload();
+    const requestInfo = this.getRequestInfo();
 
-    const contentType = headers['content-type'].toLowerCase();
+    const contentType = requestInfo.contentType.toLowerCase();
     if (contentType != 'application/json') {
       throw new BadRequestException('content-type only allows application/json');
     }

@@ -1,2 +1,2 @@
 export * from './config.interface';
-export * from './githubPayload.interface';
+export * from './requestInfo.interface';

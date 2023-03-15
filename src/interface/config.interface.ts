@@ -1,8 +1,11 @@
+import {EGitService} from '@app/app.enum';
+
 export interface IRepositoryConfigItem {
-  repository: string;
-  path: string;
-  branch: string;
+  service: EGitService;
   secret: string;
+  repository: string;
+  branch: string;
+  working_dir: string;
 }
 
 export interface IRepositoryConfig {
