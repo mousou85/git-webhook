@@ -1,10 +1,11 @@
+import {execSync} from 'child_process';
 import * as crypto from 'crypto';
 
-import {BadRequestException, Injectable} from '@nestjs/common';
+import {BadRequestException, Inject, Injectable, Logger, LoggerService} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {ClsService} from 'nestjs-cls';
 
-import {IRepositoryConfig, IRequestInfo} from '@app/interface';
+import {IRepositoryConfig, IRepositoryConfigItem, IRequestInfo} from '@app/interface';
 import {AppService} from '@app/service/app.service';
 
 @Injectable()
@@ -12,7 +13,9 @@ export class GithubService {
   constructor(
     private configService: ConfigService<IRepositoryConfig>,
     private clsService: ClsService,
-    private appService: AppService
+    private appService: AppService,
+    @Inject(Logger)
+    private logger: LoggerService
   ) {}
 
   getRequestInfo(): IRequestInfo {
@@ -30,7 +33,7 @@ export class GithubService {
       gitServiceName: 'github',
       contentType: headers['content-type'],
       userAgent: headers['user-agent'],
-      action: headers['x-github-event'],
+      event: headers['x-github-event'],
       repositoryName: payload['repository']['name'],
       branch: branch,
       signature: signature,
@@ -52,10 +55,44 @@ export class GithubService {
 
   eventProcessor() {
     const requestInfo = this.getRequestInfo();
+    const config = <IRepositoryConfigItem>this.appService.getConfig({
+      gitServiceName: requestInfo.gitServiceName,
+      repositoryName: requestInfo.repositoryName,
+      branch: requestInfo.branch,
+    });
+
+    if (!config) {
+      throw new BadRequestException('Config information not found');
+    }
+
+    if (!this.verifySignature(config.secret, requestInfo.signature, requestInfo.rawPayload)) {
+      throw new BadRequestException('Authentication failed');
+    }
 
     const contentType = requestInfo.contentType.toLowerCase();
     if (contentType != 'application/json') {
       throw new BadRequestException('content-type only allows application/json');
+    }
+
+    if (!config.action[requestInfo.event]) {
+      throw new BadRequestException(`config has no ${requestInfo.event} event action`);
+    }
+
+    if (requestInfo.event == 'push') {
+      this.pushEventProcessor(config, requestInfo);
+    }
+  }
+
+  protected pushEventProcessor(config: IRepositoryConfigItem, requestInfo: IRequestInfo) {
+    const actions = config.action.push;
+
+    try {
+      for (const cmd of actions) {
+        const stdout = execSync(cmd, {encoding: 'utf8', cwd: config.working_dir});
+        this.logger.log(stdout);
+      }
+    } catch (err) {
+      throw new BadRequestException(err.message);
     }
   }
 }

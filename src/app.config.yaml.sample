@@ -1,9 +1,10 @@
 repository:
-  - repository: test
-    path: .
-    branch: test
-    secret: 1
-  - repository: test2
-    path: .
-    branch: test
-    secret: 2
+  - service: github
+    repository: repository-name
+    branch: main
+    secret: "secret string"
+    working_dir:
+    action:
+      push:
+        - "command 1"
+        - "command 2"

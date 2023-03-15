@@ -7,7 +7,7 @@ export interface IRequestInfo {
   signature: string;
   repositoryName: string;
   branch: string;
-  action: string;
+  event: string;
   rawHeaders: Record<string, string>;
   rawPayload: Record<string, any>;
 }

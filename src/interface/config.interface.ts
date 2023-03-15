@@ -6,6 +6,9 @@ export interface IRepositoryConfigItem {
   repository: string;
   branch: string;
   working_dir: string;
+  action: {
+    push?: string[];
+  };
 }
 
 export interface IRepositoryConfig {
