@@ -22,14 +22,18 @@ export class GithubService {
    * request 데이터중 처리에 필요한 정보만 추출하여 반환
    */
   getRequestInfo(): IRequestInfo {
+    //set vars: 헤더, payload
     const headers = this.appService.getHeaders();
     const payload = this.appService.getPayload();
 
+    //set vars: 헤더에서 필요 정보만 추출
     const lowercaseHeaders = {};
     for (const headerKey of Object.keys(headers)) {
       lowercaseHeaders[headerKey.toLowerCase()] =
         headers[headerKey] ?? headers[headerKey.toLowerCase()];
     }
+
+    //set vars: 브랜치명, webhook signature
     const branch = payload['ref'].replace('refs/heads/', '');
     const signature = headers['x-hub-signature'].replace('sha1=', '');
 
