@@ -19,10 +19,14 @@ export class GithubService {
     private logger: LoggerService
   ) {}
 
+  /**
+   * webhook ping 이벤트 처리
+   */
   isPing(): boolean {
     //set vars: 헤더
-    const headers = this.getHeaders();
+    const headers = this.appService.getHeaders();
 
+    //ping 이벤트 확인
     if (headers['x-github-event'] != EGithubEvent.ping) {
       return false;
     }
@@ -53,20 +57,11 @@ export class GithubService {
     return true;
   }
 
-  protected getHeaders(): Record<string, string> {
-    //set vars: 헤더
-    const headers = this.appService.getHeaders();
-
-    //set vars: 헤더에서 필요 정보만 추출
-    const lowercaseHeaders = {};
-    for (const headerKey of Object.keys(headers)) {
-      lowercaseHeaders[headerKey.toLowerCase()] =
-        headers[headerKey] ?? headers[headerKey.toLowerCase()];
-    }
-
-    return lowercaseHeaders;
-  }
-
+  /**
+   * signature 헤더에서 값만 추출
+   * @param signatureHeader
+   * @protected
+   */
   protected extractSignature(signatureHeader: string): string {
     return signatureHeader.replace('sha1=', '');
   }
@@ -76,7 +71,7 @@ export class GithubService {
    */
   getRequestInfo(): IRequestInfo {
     //set vars: 헤더, payload
-    const headers = this.getHeaders();
+    const headers = this.appService.getHeaders();
     const payload = this.appService.getPayload();
 
     //set vars: 브랜치명, webhook signature

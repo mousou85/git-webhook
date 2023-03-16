@@ -31,10 +31,15 @@ export class AppService {
 
   /**
    * request 헤더 데이터 반환
+   * - key는 lowercase 처리
    */
   getHeaders(): Record<string, string> {
     const {headers} = this.clsService.get(CLS_REQ);
-    return headers;
+    const lowercaseHeaders = {};
+    for (const headerKey of Object.keys(headers)) {
+      lowercaseHeaders[headerKey.toLowerCase()] = headers[headerKey];
+    }
+    return lowercaseHeaders;
   }
 
   /**
