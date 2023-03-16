@@ -1,5 +1,8 @@
 import {EGitService} from '@app/app.enum';
 
+/**
+ * config.yaml의 item별 구조
+ */
 export interface IRepositoryConfigItem {
   service: EGitService;
   secret: string;
@@ -11,6 +14,9 @@ export interface IRepositoryConfigItem {
   };
 }
 
+/**
+ * config.yaml 전체 구조
+ */
 export interface IRepositoryConfig {
   repository: IRepositoryConfigItem[];
 }

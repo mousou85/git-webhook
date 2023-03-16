@@ -12,6 +12,9 @@ export class AppService {
     private clsService: ClsService
   ) {}
 
+  /**
+   * 깃 서비스 이름 반환
+   */
   getGitServiceName(): EGitService {
     const headers = this.getHeaders();
 
@@ -26,21 +29,35 @@ export class AppService {
     return undefined;
   }
 
+  /**
+   * request 헤더 데이터 반환
+   */
   getHeaders(): Record<string, string> {
     const {headers} = this.clsService.get(CLS_REQ);
     return headers;
   }
 
+  /**
+   * request payload 반환
+   */
   getPayload(): Record<string, any> {
     const {body} = this.clsService.get(CLS_REQ);
     return body;
   }
 
+  /**
+   * 설정 반환
+   * - config.yaml에 정의된 설정 반환
+   * - opts 지정되지 않으면 전체 설정 반환
+   * - opts 지정되어 있으면 해당 설정만 반환
+   * @param opts
+   */
   getConfig(opts?: {
     gitServiceName: EGitService;
     repositoryName: string;
     branch: string;
   }): IRepositoryConfigItem[] | IRepositoryConfigItem {
+    //set vars: 전체 설정 데이터
     const config = this.configService.get('repository', {infer: true});
     if (opts) {
       const {gitServiceName, repositoryName, branch} = opts;

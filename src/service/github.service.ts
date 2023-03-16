@@ -18,6 +18,9 @@ export class GithubService {
     private logger: LoggerService
   ) {}
 
+  /**
+   * request 데이터중 처리에 필요한 정보만 추출하여 반환
+   */
   getRequestInfo(): IRequestInfo {
     const headers = this.appService.getHeaders();
     const payload = this.appService.getPayload();
@@ -42,6 +45,12 @@ export class GithubService {
     };
   }
 
+  /**
+   * webhook signature 검증
+   * @param secret webhook secret
+   * @param signature request header의 signature 값
+   * @param rawPayload request payload
+   */
   verifySignature(secret: string, signature: string, rawPayload: Record<string, any>) {
     if (typeof secret != 'string') secret = (secret as any).toString();
 
@@ -53,8 +62,14 @@ export class GithubService {
     return signature === encryptSecret;
   }
 
+  /**
+   * webhook 이벤트 처리
+   */
   eventProcessor() {
+    //set vars: request 데이터
     const requestInfo = this.getRequestInfo();
+
+    //set vars: 설정 데이터
     const config = <IRepositoryConfigItem>this.appService.getConfig({
       gitServiceName: requestInfo.gitServiceName,
       repositoryName: requestInfo.repositoryName,
@@ -65,19 +80,23 @@ export class GithubService {
       throw new BadRequestException('Config information not found');
     }
 
+    //signature 검증
     if (!this.verifySignature(config.secret, requestInfo.signature, requestInfo.rawPayload)) {
       throw new BadRequestException('Authentication failed');
     }
 
+    //request content-type 체크
     const contentType = requestInfo.contentType.toLowerCase();
     if (contentType != 'application/json') {
       throw new BadRequestException('content-type only allows application/json');
     }
 
+    //request webhook event에 관련된 처리 설정 있는지 확인
     if (!config.action[requestInfo.event]) {
       throw new BadRequestException(`config has no ${requestInfo.event} event action`);
     }
 
+    //set vars: event 처리 관련 설정
     const eventActions = <string[]>config.action[requestInfo.event];
 
     try {

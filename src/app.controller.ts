@@ -8,11 +8,13 @@ export class AppController {
 
   @Post('/')
   webhook() {
+    //set vars: 깃 서비스 이름
     const gitServiceName = this.appService.getGitServiceName();
     if (!gitServiceName) {
       throw new BadRequestException('Invalid request');
     }
 
+    //서비스별 이벤트 처리 분리
     if (gitServiceName == 'github') {
       this.githubService.eventProcessor();
     }
