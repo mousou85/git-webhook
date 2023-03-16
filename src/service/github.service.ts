@@ -78,16 +78,10 @@ export class GithubService {
       throw new BadRequestException(`config has no ${requestInfo.event} event action`);
     }
 
-    if (requestInfo.event == 'push') {
-      this.pushEventProcessor(config, requestInfo);
-    }
-  }
-
-  protected pushEventProcessor(config: IRepositoryConfigItem, requestInfo: IRequestInfo) {
-    const actions = config.action.push;
+    const eventActions = <string[]>config.action[requestInfo.event];
 
     try {
-      for (const cmd of actions) {
+      for (const cmd of eventActions) {
         const stdout = execSync(cmd, {encoding: 'utf8', cwd: config.working_dir});
         this.logger.log(stdout);
       }
