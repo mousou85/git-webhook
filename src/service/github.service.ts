@@ -5,6 +5,7 @@ import {BadRequestException, Inject, Injectable, Logger, LoggerService} from '@n
 import {ConfigService} from '@nestjs/config';
 import {ClsService} from 'nestjs-cls';
 
+import {EGithubEvent} from '@app/app.enum';
 import {IRepositoryConfig, IRepositoryConfigItem, IRequestInfo} from '@app/interface';
 import {AppService} from '@app/service/app.service';
 
@@ -18,13 +19,43 @@ export class GithubService {
     private logger: LoggerService
   ) {}
 
-  /**
-   * request 데이터중 처리에 필요한 정보만 추출하여 반환
-   */
-  getRequestInfo(): IRequestInfo {
-    //set vars: 헤더, payload
-    const headers = this.appService.getHeaders();
+  isPing(): boolean {
+    //set vars: 헤더
+    const headers = this.getHeaders();
+
+    if (headers['x-github-event'] != EGithubEvent.ping) {
+      return false;
+    }
+
+    //set vars: payload, signature, config
     const payload = this.appService.getPayload();
+    const signature = this.extractSignature(headers['x-hub-signature']);
+    const config = <IRepositoryConfigItem>this.appService.getConfig({
+      gitServiceName: 'github',
+      repositoryName: payload['repository']['name'],
+    });
+
+    if (!config) {
+      throw new BadRequestException('Config information not found');
+    }
+
+    //request content-type 체크
+    const contentType = headers['content-type'].toLowerCase();
+    if (contentType != 'application/json') {
+      throw new BadRequestException('content-type only allows application/json');
+    }
+
+    //signature 검증
+    if (!this.verifySignature(config.secret, signature, payload)) {
+      throw new BadRequestException('Authentication failed');
+    }
+
+    return true;
+  }
+
+  protected getHeaders(): Record<string, string> {
+    //set vars: 헤더
+    const headers = this.appService.getHeaders();
 
     //set vars: 헤더에서 필요 정보만 추출
     const lowercaseHeaders = {};
@@ -33,9 +64,24 @@ export class GithubService {
         headers[headerKey] ?? headers[headerKey.toLowerCase()];
     }
 
+    return lowercaseHeaders;
+  }
+
+  protected extractSignature(signatureHeader: string): string {
+    return signatureHeader.replace('sha1=', '');
+  }
+
+  /**
+   * request 데이터중 처리에 필요한 정보만 추출하여 반환
+   */
+  getRequestInfo(): IRequestInfo {
+    //set vars: 헤더, payload
+    const headers = this.getHeaders();
+    const payload = this.appService.getPayload();
+
     //set vars: 브랜치명, webhook signature
     const branch = payload['ref'].replace('refs/heads/', '');
-    const signature = headers['x-hub-signature'].replace('sha1=', '');
+    const signature = this.extractSignature(headers['x-hub-signature']);
 
     return {
       gitServiceName: 'github',
@@ -45,7 +91,7 @@ export class GithubService {
       repositoryName: payload['repository']['name'],
       branch: branch,
       signature: signature,
-      rawHeaders: lowercaseHeaders,
+      rawHeaders: headers,
       rawPayload: payload,
     };
   }

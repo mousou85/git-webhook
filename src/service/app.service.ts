@@ -55,7 +55,7 @@ export class AppService {
   getConfig(opts?: {
     gitServiceName: EGitService;
     repositoryName: string;
-    branch: string;
+    branch?: string;
   }): IRepositoryConfigItem[] | IRepositoryConfigItem {
     //set vars: 전체 설정 데이터
     const config = this.configService.get('repository', {infer: true});
@@ -64,12 +64,20 @@ export class AppService {
 
       let configItem: IRepositoryConfigItem;
       for (const item of config) {
-        if (
-          item.service == gitServiceName &&
-          item.repository == repositoryName &&
-          item.branch == branch
-        ) {
-          configItem = item;
+        if (branch) {
+          if (
+            item.service == gitServiceName &&
+            item.repository == repositoryName &&
+            item.branch == branch
+          ) {
+            configItem = item;
+            break;
+          }
+        } else {
+          if (item.service == gitServiceName && item.repository == repositoryName) {
+            configItem = item;
+            break;
+          }
         }
       }
 

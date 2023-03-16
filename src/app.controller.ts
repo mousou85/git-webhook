@@ -16,7 +16,11 @@ export class AppController {
 
     //서비스별 이벤트 처리 분리
     if (gitServiceName == 'github') {
-      this.githubService.eventProcessor();
+      if (this.githubService.isPing()) {
+        return 'ping success';
+      } else {
+        this.githubService.eventProcessor();
+      }
     }
   }
 }
