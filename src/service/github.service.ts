@@ -27,7 +27,8 @@ export class GithubService {
 
     const lowercaseHeaders = {};
     for (const headerKey of Object.keys(headers)) {
-      lowercaseHeaders[headerKey.toLowerCase()] = headers[headerKey];
+      lowercaseHeaders[headerKey.toLowerCase()] =
+        headers[headerKey] ?? headers[headerKey.toLowerCase()];
     }
     const branch = payload['ref'].replace('refs/heads/', '');
     const signature = headers['x-hub-signature'].replace('sha1=', '');
