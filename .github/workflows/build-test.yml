@@ -2,8 +2,13 @@ name: Build Test
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    paths:
+      - "src/**"
+      - "package.json"
+      - "nest-cli.json"
+      - "tsconfig.json"
+      - "tsconfig.build.json"
+    
 
 jobs:
   build:
