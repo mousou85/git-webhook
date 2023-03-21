@@ -1,7 +1,7 @@
 name: Build Test
 on:
   push:
-    branches: [ "release" ]
+    branches: [ "master" ]
     paths:
       - "src/**"
       - "package.json"
