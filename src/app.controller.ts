@@ -19,8 +19,9 @@ export class AppController {
       if (this.githubService.isPing()) {
         return 'ping success';
       } else {
-        this.githubService.eventProcessor();
+        this.githubService.eventProcessor().then();
       }
     }
+    return 'response success';
   }
 }

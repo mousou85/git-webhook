@@ -1,23 +1,15 @@
-import {execSync} from 'child_process';
 import * as crypto from 'crypto';
 
-import {BadRequestException, Inject, Injectable, Logger, LoggerService} from '@nestjs/common';
-import {ConfigService} from '@nestjs/config';
+import {BadRequestException, Injectable} from '@nestjs/common';
 import {ClsService} from 'nestjs-cls';
 
 import {EGithubEvent} from '@app/app.enum';
-import {IRepositoryConfig, IRepositoryConfigItem, IRequestInfo} from '@app/interface';
+import {IRepositoryConfigItem, IRequestInfo} from '@app/interface';
 import {AppService} from '@app/service/app.service';
 
 @Injectable()
 export class GithubService {
-  constructor(
-    private configService: ConfigService<IRepositoryConfig>,
-    private clsService: ClsService,
-    private appService: AppService,
-    @Inject(Logger)
-    private logger: LoggerService
-  ) {}
+  constructor(private clsService: ClsService, private appService: AppService) {}
 
   /**
    * webhook ping 이벤트 처리
@@ -111,7 +103,7 @@ export class GithubService {
   /**
    * webhook 이벤트 처리
    */
-  eventProcessor() {
+  async eventProcessor() {
     //set vars: request 데이터
     const requestInfo = this.getRequestInfo();
 
@@ -145,13 +137,7 @@ export class GithubService {
     //set vars: event 처리 관련 설정
     const eventActions = <string[]>config.action[requestInfo.event];
 
-    try {
-      for (const cmd of eventActions) {
-        const stdout = execSync(cmd, {encoding: 'utf8', cwd: config.working_dir});
-        this.logger.log(stdout);
-      }
-    } catch (err) {
-      throw new BadRequestException(err.message);
-    }
+    //명령어 실행
+    this.appService.execCmd(config.working_dir, eventActions);
   }
 }

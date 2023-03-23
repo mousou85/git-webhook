@@ -1,15 +1,20 @@
-import {Injectable} from '@nestjs/common';
-import {ConfigService} from '@nestjs/config';
+import {execSync} from 'child_process';
+import fs from 'fs';
+import path from 'path';
+
+import {Inject, Injectable, Logger, LoggerService} from '@nestjs/common';
+import * as yaml from 'js-yaml';
 import {CLS_REQ, ClsService} from 'nestjs-cls';
 
 import {EGitService} from '@app/app.enum';
-import {IRepositoryConfig, IRepositoryConfigItem} from '@app/interface';
+import {IRepositoryConfigItem} from '@app/interface';
 
 @Injectable()
 export class AppService {
   constructor(
-    private configService: ConfigService<IRepositoryConfig>,
-    private clsService: ClsService
+    private clsService: ClsService,
+    @Inject(Logger)
+    private logger: LoggerService
   ) {}
 
   /**
@@ -62,8 +67,10 @@ export class AppService {
     repositoryName: string;
     branch?: string;
   }): IRepositoryConfigItem[] | IRepositoryConfigItem {
+    const configPath = path.join(__dirname, '..', 'app.config.yaml');
+    const config = yaml.load(fs.readFileSync(configPath, 'utf8'))['repository'];
+
     //set vars: 전체 설정 데이터
-    const config = this.configService.get('repository', {infer: true});
     if (opts) {
       const {gitServiceName, repositoryName, branch} = opts;
 
@@ -89,6 +96,24 @@ export class AppService {
       return configItem;
     } else {
       return config;
+    }
+  }
+
+  /**
+   * 명령어 목록 실행
+   * @param workingDir 작업 dir
+   * @param cmdList 명령어 목록
+   */
+  execCmd(workingDir: string, cmdList: string[]): void {
+    try {
+      this.logger.debug(`cmd working dir: ${workingDir}`);
+      for (const cmd of cmdList) {
+        this.logger.debug(`execute cmd: "${cmd}"`);
+        const stdout = execSync(cmd, {encoding: 'utf8', cwd: workingDir});
+        this.logger.debug(`execute output: ${stdout}`);
+      }
+    } catch (err) {
+      this.logger.error(err);
     }
   }
 }
