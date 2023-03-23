@@ -1,10 +1,15 @@
-import {BadRequestException, Controller, Post} from '@nestjs/common';
+import {BadRequestException, Controller, Inject, Logger, LoggerService, Post} from '@nestjs/common';
 
 import {AppService, GithubService} from '@app/service';
 
 @Controller()
 export class AppController {
-  constructor(private appService: AppService, private githubService: GithubService) {}
+  constructor(
+    @Inject(Logger)
+    private logger: LoggerService,
+    private appService: AppService,
+    private githubService: GithubService
+  ) {}
 
   @Post('/')
   webhook() {
@@ -22,6 +27,8 @@ export class AppController {
         this.githubService.eventProcessor().then();
       }
     }
+
+    this.logger.debug('response success');
     return 'response success';
   }
 }
