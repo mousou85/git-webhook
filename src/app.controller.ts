@@ -22,13 +22,12 @@ export class AppController {
     //서비스별 이벤트 처리 분리
     if (gitServiceName == 'github') {
       if (this.githubService.isPing()) {
-        return 'ping success';
+        return this.githubService.pingProcessor();
       } else {
-        this.githubService.eventProcessor().then();
+        this.githubService.eventProcessor();
       }
     }
 
-    this.logger.debug('response success');
     return 'response success';
   }
 }

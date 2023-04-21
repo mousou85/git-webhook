@@ -5,7 +5,7 @@ import {BadRequestException, Injectable} from '@nestjs/common';
 import {ClsService} from 'nestjs-cls';
 
 import {EGithubEvent} from '@app/app.enum';
-import {IRepositoryConfigItem, IRequestInfo} from '@app/interface';
+import {IRepositoryConfigWebhook, IRequestInfo} from '@app/interface';
 import {AppService} from '@app/service/app.service';
 
 @Injectable()
@@ -13,28 +13,24 @@ export class GithubService {
   constructor(private clsService: ClsService, private appService: AppService) {}
 
   /**
-   * webhook ping 이벤트 처리
+   * webhook ping 이벤트 인지 여부
    */
   isPing(): boolean {
     //set vars: 헤더
     const headers = this.appService.getHeaders();
+    return headers['x-github-event'] == EGithubEvent.ping;
+  }
 
-    //ping 이벤트 확인
-    if (headers['x-github-event'] != EGithubEvent.ping) {
-      return false;
-    }
+  /**
+   * webhook ping 이벤트 처리
+   */
+  pingProcessor(): string {
+    //set vars: 헤더
+    const headers = this.appService.getHeaders();
 
     //set vars: payload, signature, config
     const payload = this.appService.getPayload();
     const signature = this.extractSignature(headers['x-hub-signature']);
-    const config = <IRepositoryConfigItem>this.appService.getConfig({
-      gitServiceName: 'github',
-      repositoryName: payload['repository']['name'],
-    });
-
-    if (!config) {
-      throw new BadRequestException('Config information not found');
-    }
 
     //request content-type 체크
     const contentType = headers['content-type'].toLowerCase();
@@ -42,12 +38,26 @@ export class GithubService {
       throw new BadRequestException('content-type only allows application/json');
     }
 
-    //signature 검증
-    if (!this.verifySignature(config.secret, signature, payload)) {
+    //set vars: config
+    const configItem = this.appService.getConfigItem('github', payload['repository']['name']);
+
+    if (!configItem) {
+      throw new BadRequestException('Config information not found');
+    }
+
+    //signature에 맞는 webhook 가져옴
+    let isVerifyWebhook = false;
+    for (const webhook of configItem.webhooks) {
+      if (this.verifySignature(webhook.secret, signature, payload)) {
+        isVerifyWebhook = true;
+        break;
+      }
+    }
+    if (!isVerifyWebhook) {
       throw new BadRequestException('Authentication failed');
     }
 
-    return true;
+    return 'ping success';
   }
 
   /**
@@ -104,25 +114,9 @@ export class GithubService {
   /**
    * webhook 이벤트 처리
    */
-  async eventProcessor() {
+  eventProcessor() {
     //set vars: request 데이터
     const requestInfo = this.getRequestInfo();
-
-    //set vars: 설정 데이터
-    const config = <IRepositoryConfigItem>this.appService.getConfig({
-      gitServiceName: requestInfo.gitServiceName,
-      repositoryName: requestInfo.repositoryName,
-      branch: requestInfo.branch,
-    });
-
-    if (!config) {
-      throw new BadRequestException('Config information not found');
-    }
-
-    //signature 검증
-    if (!this.verifySignature(config.secret, requestInfo.signature, requestInfo.rawPayload)) {
-      throw new BadRequestException('Authentication failed');
-    }
 
     //request content-type 체크
     const contentType = requestInfo.contentType.toLowerCase();
@@ -130,20 +124,44 @@ export class GithubService {
       throw new BadRequestException('content-type only allows application/json');
     }
 
+    //set vars: 설정 데이터
+    const configItem = this.appService.getConfigItem('github', requestInfo.repositoryName);
+    let webhook: IRepositoryConfigWebhook;
+    for (const item of configItem.webhooks) {
+      if (
+        item.branch == requestInfo.branch &&
+        this.verifySignature(item.secret, requestInfo.signature, requestInfo.rawPayload)
+      ) {
+        webhook = item;
+        break;
+      }
+    }
+
+    if (!webhook) {
+      throw new BadRequestException('Config information not found or authentication failed');
+    }
+
     //working dir 유무 확인
-    if (!fs.existsSync(config.working_dir)) {
+    if (!fs.existsSync(webhook.working_dir)) {
       throw new BadRequestException('working dir does not exist');
     }
 
     //request webhook event에 관련된 처리 설정 있는지 확인
-    if (!config.action[requestInfo.event]) {
+    if (!webhook.action[requestInfo.event] || !webhook.action[requestInfo.event].length) {
       throw new BadRequestException(`config has no ${requestInfo.event} event action`);
     }
 
     //set vars: event 처리 관련 설정
-    const eventActions = <string[]>config.action[requestInfo.event];
+    const eventActions = <string[]>webhook.action[requestInfo.event];
 
-    //명령어 실행
-    this.appService.execCmd(config.working_dir, eventActions);
+    //que 파일에 기록
+    this.appService.writeQueFile({
+      service: configItem.service,
+      repository: configItem.repository,
+      branch: webhook.branch,
+      workingDir: webhook.working_dir,
+      event: requestInfo.event,
+      actions: eventActions,
+    });
   }
 }

@@ -2,15 +2,17 @@ import {execSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-import {Inject, Injectable, Logger, LoggerService} from '@nestjs/common';
+import {BadRequestException, Inject, Injectable, Logger, LoggerService} from '@nestjs/common';
 import * as yaml from 'js-yaml';
 import {CLS_REQ, ClsService} from 'nestjs-cls';
 
 import {EGitService} from '@app/app.enum';
-import {IRepositoryConfigItem} from '@app/interface';
+import {IRepositoryConfig, IRepositoryConfigItem} from '@app/interface';
 
 @Injectable()
 export class AppService {
+  protected static queFileName = 'que.ndjson';
+
   constructor(
     private clsService: ClsService,
     @Inject(Logger)
@@ -54,48 +56,64 @@ export class AppService {
     const {body} = this.clsService.get(CLS_REQ);
     return body;
   }
+  /**
+   * 설정 파일 내용 반환
+   */
+  getConfig(): IRepositoryConfig | undefined {
+    const configPath = path.resolve(__dirname, './config/app.config.yaml');
+    return <IRepositoryConfig>yaml.load(fs.readFileSync(configPath, 'utf8'));
+  }
 
   /**
-   * 설정 반환
-   * - config.yaml에 정의된 설정 반환
-   * - opts 지정되지 않으면 전체 설정 반환
-   * - opts 지정되어 있으면 해당 설정만 반환
-   * @param opts
+   * 설정 파일에서 해당 repository 정보 반환
+   * @param gitServiceName
+   * @param repositoryName
    */
-  getConfig(opts?: {
-    gitServiceName: EGitService;
-    repositoryName: string;
-    branch?: string;
-  }): IRepositoryConfigItem[] | IRepositoryConfigItem {
-    const configPath = path.resolve(__dirname, './config/app.config.yaml');
-    const config = yaml.load(fs.readFileSync(configPath, 'utf8'))['repository'];
+  getConfigItem(
+    gitServiceName: EGitService,
+    repositoryName: string
+  ): IRepositoryConfigItem | undefined {
+    const config = this.getConfig();
 
-    //특정 저장소 설정만 가져오는 경우
-    if (opts) {
-      const {gitServiceName, repositoryName, branch} = opts;
+    let configItem: IRepositoryConfigItem;
 
-      let configItem: IRepositoryConfigItem;
-      for (const item of config) {
-        if (branch) {
-          if (
-            item.service == gitServiceName &&
-            item.repository == repositoryName &&
-            item.branch == branch
-          ) {
-            configItem = item;
-            break;
-          }
-        } else {
-          if (item.service == gitServiceName && item.repository == repositoryName) {
-            configItem = item;
-            break;
-          }
-        }
+    for (const item of config.repository) {
+      if (item.service == gitServiceName && item.repository == repositoryName) {
+        configItem = item;
+        break;
       }
+    }
 
-      return configItem;
-    } else {
-      return config;
+    return configItem;
+  }
+
+  /**
+   * que 파일에 webhook으로 처리할 내용 기록
+   * @param data
+   */
+  writeQueFile(data: {
+    service: EGitService;
+    repository: string;
+    branch: string;
+    workingDir: string;
+    event: string;
+    actions: string[];
+  }) {
+    //set vars: que 파일 경로
+    const queFilePath = path.resolve(__dirname, `./${AppService.queFileName}`);
+
+    //set vars: que 파일에 기록할 내용
+    const {service, repository, branch, workingDir, event, actions} = data;
+
+    try {
+      fs.appendFileSync(
+        queFilePath,
+        JSON.stringify({service, repository, branch, workingDir, event, actions}),
+        {encoding: 'utf8'}
+      );
+    } catch (err) {
+      this.logger.error(err);
+      throw new BadRequestException(err);
     }
   }
 
@@ -104,7 +122,7 @@ export class AppService {
    * @param workingDir 작업 dir
    * @param cmdList 명령어 목록
    */
-  execCmd(workingDir: string, cmdList: string[]): void {
+  execCmd(workingDir: string, cmdList: string[]) {
     try {
       this.logger.debug(`cmd working dir: ${workingDir}`);
       for (const cmd of cmdList) {
