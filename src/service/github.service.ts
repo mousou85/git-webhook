@@ -113,6 +113,7 @@ export class GithubService {
       repositoryName: requestInfo.repositoryName,
       branch: requestInfo.branch,
     });
+    console.log(config);
 
     if (!config) {
       throw new BadRequestException('Config information not found');
