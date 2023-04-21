@@ -68,10 +68,7 @@ export class AppService {
     branch?: string;
   }): IRepositoryConfigItem[] | IRepositoryConfigItem {
     const configPath = path.resolve(__dirname, './config/app.config.yaml');
-    console.log(configPath);
-    console.log(opts);
     const config = yaml.load(fs.readFileSync(configPath, 'utf8'))['repository'];
-    console.log(config);
 
     //특정 저장소 설정만 가져오는 경우
     if (opts) {

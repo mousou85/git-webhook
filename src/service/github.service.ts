@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import fs from 'fs';
 
 import {BadRequestException, Injectable} from '@nestjs/common';
 import {ClsService} from 'nestjs-cls';
@@ -113,7 +114,6 @@ export class GithubService {
       repositoryName: requestInfo.repositoryName,
       branch: requestInfo.branch,
     });
-    console.log('config check:', config);
 
     if (!config) {
       throw new BadRequestException('Config information not found');
@@ -128,6 +128,11 @@ export class GithubService {
     const contentType = requestInfo.contentType.toLowerCase();
     if (contentType != 'application/json') {
       throw new BadRequestException('content-type only allows application/json');
+    }
+
+    //working dir 유무 확인
+    if (!fs.existsSync(config.working_dir)) {
+      throw new BadRequestException('working dir does not exist');
     }
 
     //request webhook event에 관련된 처리 설정 있는지 확인
