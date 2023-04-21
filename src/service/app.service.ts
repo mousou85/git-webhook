@@ -69,10 +69,11 @@ export class AppService {
   }): IRepositoryConfigItem[] | IRepositoryConfigItem {
     const configPath = path.resolve(__dirname, './config/app.config.yaml');
     console.log(configPath);
+    console.log(opts);
     const config = yaml.load(fs.readFileSync(configPath, 'utf8'))['repository'];
     console.log(config);
 
-    //set vars: 전체 설정 데이터
+    //특정 저장소 설정만 가져오는 경우
     if (opts) {
       const {gitServiceName, repositoryName, branch} = opts;
 
