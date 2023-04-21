@@ -28,14 +28,14 @@ $ npm run start:prod
 ```
 
 ## environment
-`.env.sample`파일명을 `.env`로 수정 후 필요한 정보 입력
+`./config`경로의 `.env.sample`파일명을 `.env`로 수정 후 필요한 정보 입력
 ```dotenv
 #사용할 포트
 PORT=#기본값: 3000
 ```
 
 ## configure
-`app.config.yaml.sample`을 `app.config.yaml`으로 수정 후 git repository, webhook 정보 및 webhook 수신 시 필요한 정보 입력  
+`./config`경로의 `app.config.yaml.sample`을 `app.config.yaml`으로 수정 후 git repository, webhook 정보 및 webhook 수신 시 필요한 정보 입력  
   
 `action` 항목은 수신받아 처리할 webhook 이벤트에 한해서만 정의하여 사용함.  
 (push 이벤트만 수신 받아 처리하고 싶으면 push 항목만 정의해서 사용)
