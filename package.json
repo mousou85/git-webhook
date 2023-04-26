@@ -6,12 +6,14 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build:app": "nest build -c nest-cli.app.json",
+    "build:cli": "nest build -c nest-cli.cli.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
+    "start": "nest start -c nest-cli.app.json",
+    "start:dev": "nest start --watch -c nest-cli.app.json",
+    "start:debug": "nest start --debug --watch -c nest-cli.app.json",
     "start:prod": "node dist/main",
+    "cli": "ts-node -r tsconfig-paths/register src/cli.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
   "dependencies": {
@@ -21,6 +23,7 @@
     "@nestjs/platform-express": "^9.3.10",
     "dotenv": "^16.0.3",
     "js-yaml": "^4.1.0",
+    "nest-commander": "^3.7.0",
     "nestjs-cls": "^3.2.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",

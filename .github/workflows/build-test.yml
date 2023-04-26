@@ -5,7 +5,8 @@ on:
     paths:
       - "src/**"
       - "package.json"
-      - "nest-cli.json"
+      - "nest-cli.app.json"
+      - "nest-cli.cli.json"
       - "tsconfig.json"
       - "tsconfig.build.json"
     
@@ -26,7 +27,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Build
+    - name: Install Dependencies
+      run: npm install --production
+
+    - name: Build Web
       run: |
-        npm install --production
-        npm run build
+        npm run build:app
+
+    - name: Build Cli Command
+      run: |
+        npm run build:cli
