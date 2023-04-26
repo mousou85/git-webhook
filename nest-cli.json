@@ -5,8 +5,9 @@
   "compilerOptions": {
     "deleteOutDir": false,
     "webpack": true,
+    "watchAssets": true,
     "assets": [
-      {"include":  "../config/*", "outDir":  "dist/config"}
+      {"include":  "../config/*", "exclude": "../config/*.sample", "outDir":  "dist/config"}
     ]
   }
 }
