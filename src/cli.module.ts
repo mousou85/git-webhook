@@ -1,8 +1,8 @@
 import {Module} from '@nestjs/common';
 
-import {TestCommand} from '@app/command';
+import {DefaultCommand} from '@app/command';
 
 @Module({
-  providers: [TestCommand],
+  providers: [DefaultCommand],
 })
 export class CliModule {}

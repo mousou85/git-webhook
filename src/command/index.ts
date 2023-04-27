@@ -1,1 +1,1 @@
-export * from './test.command';
+export * from './default.command';
