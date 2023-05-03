@@ -155,7 +155,7 @@ export class GithubService {
     const eventActions = <string[]>webhook.action[requestInfo.event];
 
     //que 파일에 기록
-    this.appService.writeQueFile({
+    this.appService.writeQueueFile({
       service: configItem.service,
       repository: configItem.repository,
       branch: webhook.branch,

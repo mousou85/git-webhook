@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as process from 'process';
+import * as readline from 'readline';
 
 import {CommandRunner, DefaultCommand as DefaultCommandDecorator, Option} from 'nest-commander';
 
@@ -21,13 +22,26 @@ export class DefaultCommand extends CommandRunner {
     if (file) {
       file = path.resolve(process.cwd(), file);
     } else {
-      file = path.resolve(process.cwd(), './que.ndjson');
+      file = path.resolve(process.cwd(), './queue.ndjson');
     }
 
     if (!fs.existsSync(file)) {
       console.error('file does not exists');
+      console.error(`Is the file path ${file} correct?`);
       return;
     }
+
+    const fileStream = fs.createReadStream(file);
+    const queue = [];
+    try {
+      for await (const line of readline.createInterface(fileStream)) {
+        queue.push(line);
+      }
+    } finally {
+      fileStream.destroy();
+    }
+
+    console.log(queue);
   }
 
   @Option({flags: '-F, --file <file>', description: '큐 파일'})

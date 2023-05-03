@@ -11,7 +11,7 @@ import {IRepositoryConfig, IRepositoryConfigItem} from '@app/interface';
 
 @Injectable()
 export class AppService {
-  protected static queFileName = 'que.ndjson';
+  protected static queFileName = 'queue.ndjson';
 
   constructor(
     private clsService: ClsService,
@@ -91,7 +91,7 @@ export class AppService {
    * que 파일에 webhook으로 처리할 내용 기록
    * @param data
    */
-  writeQueFile(data: {
+  writeQueueFile(data: {
     service: EGitService;
     repository: string;
     branch: string;
