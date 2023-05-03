@@ -8,5 +8,6 @@ import {AppService, GithubService} from '@app/service';
   imports: [ClsModule.forRoot({global: true, middleware: {mount: true}})],
   controllers: [AppController],
   providers: [Logger, AppService, GithubService],
+  exports: [],
 })
 export class AppModule {}

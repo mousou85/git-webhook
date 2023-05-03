@@ -17,7 +17,11 @@ export class AppService {
     private clsService: ClsService,
     @Inject(Logger)
     private logger: LoggerService
-  ) {}
+  ) {
+    if (process.env.QUEUE_FILE_NAME) {
+      AppService.queFileName = process.env.QUEUE_FILE_NAME;
+    }
+  }
 
   /**
    * 깃 서비스 이름 반환
