@@ -22,13 +22,16 @@
     "@nestjs/common": "^9.3.10",
     "@nestjs/core": "^9.3.10",
     "@nestjs/platform-express": "^9.3.10",
+    "dayjs": "^1.11.7",
     "dotenv": "^16.0.3",
     "js-yaml": "^4.1.0",
     "nest-commander": "^3.7.0",
+    "nest-winston": "^1.9.2",
     "nestjs-cls": "^3.2.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "ts-loader": "^9.4.2"
+    "ts-loader": "^9.4.2",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@nestjs/schematics": "^9.0.4",

@@ -1,8 +1,7 @@
-import {execSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-import {BadRequestException, Inject, Injectable, Logger, LoggerService} from '@nestjs/common';
+import {BadRequestException, Injectable, Logger} from '@nestjs/common';
 import * as yaml from 'js-yaml';
 import {CLS_REQ, ClsService} from 'nestjs-cls';
 
@@ -12,12 +11,9 @@ import {IRepositoryConfig, IRepositoryConfigItem} from '@app/interface';
 @Injectable()
 export class AppService {
   protected static queFileName = 'queue.ndjson';
+  protected readonly logger = new Logger();
 
-  constructor(
-    private clsService: ClsService,
-    @Inject(Logger)
-    private logger: LoggerService
-  ) {
+  constructor(private clsService: ClsService) {
     if (process.env.QUEUE_FILE_NAME) {
       AppService.queFileName = process.env.QUEUE_FILE_NAME;
     }
@@ -116,26 +112,8 @@ export class AppService {
         {encoding: 'utf8'}
       );
     } catch (err) {
-      this.logger.error(err);
+      this.logger.error(err.message, err.stack);
       throw new BadRequestException(err);
-    }
-  }
-
-  /**
-   * 명령어 목록 실행
-   * @param workingDir 작업 dir
-   * @param cmdList 명령어 목록
-   */
-  execCmd(workingDir: string, cmdList: string[]) {
-    try {
-      this.logger.debug(`cmd working dir: ${workingDir}`);
-      for (const cmd of cmdList) {
-        this.logger.debug(`execute cmd: "${cmd}"`);
-        const stdout = execSync(cmd, {encoding: 'utf8', cwd: workingDir});
-        this.logger.debug(`execute output: ${stdout}`);
-      }
-    } catch (err) {
-      this.logger.error(err);
     }
   }
 }

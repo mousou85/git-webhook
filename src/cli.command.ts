@@ -1,3 +1,4 @@
+import {Logger} from '@nestjs/common';
 import {CommandRunner, DefaultCommand as DefaultCommandDecorator, Option} from 'nest-commander';
 
 import {CliService} from '@app/service';
@@ -7,6 +8,8 @@ import {CliService} from '@app/service';
   // options: {isDefault: true},
 })
 export class CliCommand extends CommandRunner {
+  protected readonly logger = new Logger();
+
   constructor(private cliService: CliService) {
     super();
   }
@@ -17,8 +20,15 @@ export class CliCommand extends CommandRunner {
 
     //set vars: queue data
     const queue = await this.cliService.readQueFile(file);
+    if (queue.length) {
+      this.logger.log('nothing to do');
+      return;
+    }
 
-    console.log(queue);
+    //명령어 실행
+    for (const item of queue) {
+      this.cliService.execCmd(item);
+    }
     return;
   }
 
