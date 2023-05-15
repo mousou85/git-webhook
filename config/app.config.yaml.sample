@@ -1,10 +1,18 @@
 repository:
-  - service: github
+  - service: git-service-name
     repository: repository-name
-    branch: main
-    secret: "secret string"
-    working_dir:
-    action:
-      push:
-        - "command 1"
-        - "command 2"
+    webhooks:
+      - branch: branch-name
+        secret: "webhook-secret"
+        working_dir: "working-dir"
+        action:
+          push:
+            - "command1"
+            - "command2"
+          pull:
+            ...
+      - branch: branch-name
+        ...
+  - service: git-service-name
+    repository: repository-name
+    ...
