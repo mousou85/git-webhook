@@ -50,7 +50,7 @@ export class CliService {
     }
 
     //큐 파일 비우기
-    // fs.writeFileSync(file, '', {encoding: 'utf8'});
+    fs.writeFileSync(file, '', {encoding: 'utf8'});
 
     return queue;
   }
