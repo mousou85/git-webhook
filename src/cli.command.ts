@@ -2,6 +2,7 @@ import {Logger} from '@nestjs/common';
 import {CommandRunner, DefaultCommand as DefaultCommandDecorator, Option} from 'nest-commander';
 
 import {CliService} from '@app/service';
+import {Helper} from '@app/shared';
 
 @DefaultCommandDecorator({
   description: '큐 파일에 있는 명령을 실행합니다.',
@@ -18,18 +19,18 @@ export class CliCommand extends CommandRunner {
     //set vars: options
     let {file} = options;
 
-    //set vars: queue data
-    const queue = await this.cliService.readQueFile(file);
-    if (queue.length) {
-      this.logger.log('nothing to do');
-      return;
-    }
+    while (true) {
+      //set vars: queue data
+      const queue = await this.cliService.readQueFile(file);
+      if (queue.length) {
+        //명령어 실행
+        for (const item of queue) {
+          this.cliService.execCmd(item);
+        }
+      }
 
-    //명령어 실행
-    for (const item of queue) {
-      this.cliService.execCmd(item);
+      await Helper.sleep(5000);
     }
-    return;
   }
 
   @Option({flags: '-F, --file <file>', description: '큐 파일'})
