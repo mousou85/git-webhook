@@ -13,7 +13,11 @@ $ npm i --production
 ```
 
 ## environment
-`./config`경로의 `.env.sample`파일명을 `.env`로 수정 후 필요한 정보 입력
+`./config/.env.sample`파일을 `.env`로 수정 후 필요한 정보 입력
+dev/production에 따라 `.env`파일을 각각 아래 경로에 배치
+- dev: `./config`
+- production: `./dist/config`
+
 ```dotenv
 #사용할 포트
 PORT=#기본값: 3000
@@ -22,7 +26,10 @@ QUEUE_FILE_NAME=#기본값: queue.ndjson
 ```
 
 ## configure
-`./config`경로의 `app.config.yaml.sample`을 `app.config.yaml`으로 수정 후 git repository, webhook 정보 및 webhook 수신 시 필요한 정보 입력
+`./config/app.config.yaml.sample`파이을 `app.config.yaml`로 수정 후 git repository, webhook 정보 및 webhook 수신 시 필요한 정보 입력  
+dev/production에 따라 `app.config.yaml`파일을 각각 아래 경로에 배치
+- dev: `./config`
+- production: `./dist/config`
 
 `action` 항목은 수신받아 처리할 webhook 이벤트에 한해서만 정의하여 사용함.  
 (push 이벤트만 수신 받아 처리하고 싶으면 push 항목만 정의해서 사용)
@@ -80,7 +87,7 @@ module.exports = {
       merge_logs: true,
       watch: true,
       watch_delay: 1000,
-      ignore_watch: ['cli.js', 'config/*', '*.ndjson'],
+      ignore_watch: ['cli.js', 'config/app.config.yaml', '*.ndjson'],
       user: "user_web", //실행할 유저명
       output: '/var/log/pm2/git-webhook/out.log',
       error: '/var/log/pm2/git-webhook/error.log',

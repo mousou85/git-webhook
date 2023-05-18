@@ -11,7 +11,7 @@ import {IRepositoryConfig, IRepositoryConfigItem} from '@app/interface';
 @Injectable()
 export class AppService {
   protected static queFileName = 'queue.ndjson';
-  protected readonly logger = new Logger();
+  protected readonly logger = new Logger('AppService');
 
   constructor(private clsService: ClsService) {
     if (process.env.QUEUE_FILE_NAME) {
@@ -61,6 +61,11 @@ export class AppService {
    */
   getConfig(): IRepositoryConfig | undefined {
     const configPath = path.resolve(__dirname, './config/app.config.yaml');
+    if (!fs.existsSync(configPath)) {
+      const errorMsg = 'config file does not exists';
+      this.logger.error(`${configPath} ${errorMsg}`);
+      throw new BadRequestException(errorMsg);
+    }
     return <IRepositoryConfig>yaml.load(fs.readFileSync(configPath, 'utf8'));
   }
 
