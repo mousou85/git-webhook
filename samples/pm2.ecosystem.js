@@ -10,13 +10,10 @@ module.exports = {
       merge_logs: true,
       watch: true,
       watch_delay: 1000,
-      ignore_watch: ['cli.js', 'config/app.config.yaml', '*.ndjson'],
-      user: "user_web",
+      ignore_watch: ['cli.js', 'config/*', '*.ndjson'],
+      user: 'user_web',
       output: '/var/log/pm2/git-webhook/out.log',
       error: '/var/log/pm2/git-webhook/error.log',
-    }
-  ]
-}
-
-
-
+    },
+  ],
+};

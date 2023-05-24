@@ -1,0 +1,15 @@
+[Unit]
+Description=Git Webhook Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+WorkingDirectory=/git-webhook/dist
+Restart=on-failure
+ExecStart=/usr/bin/node /git-webhook/dist/cli.js
+ExecStop=/usr/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

@@ -13,7 +13,7 @@ $ npm i --production
 ```
 
 ## environment
-`./config/.env.sample`파일을 `.env`로 수정 후 필요한 정보 입력
+`./samples/.env.sample`파일을 `.env`로 수정 후 필요한 정보 입력
 dev/production에 따라 `.env`파일을 각각 아래 경로에 배치
 - dev: `./config`
 - production: `./dist/config`
@@ -26,7 +26,7 @@ QUEUE_FILE_NAME=#기본값: queue.ndjson
 ```
 
 ## configure
-`./config/app.config.yaml.sample`파이을 `app.config.yaml`로 수정 후 git repository, webhook 정보 및 webhook 수신 시 필요한 정보 입력  
+`./samples/app.config.yaml`파일을 git repository, webhook 정보 및 webhook 수신 시 필요한 정보 입력  
 dev/production에 따라 `app.config.yaml`파일을 각각 아래 경로에 배치
 - dev: `./config`
 - production: `./dist/config`
@@ -73,7 +73,7 @@ $ node main.js
 ```
 
 ### pm2
-`pm2.ecosystem.js.sample` 참고하여 실행
+`./samples/pm2.ecosystem.js` 참고하여 `ecosystem.config.js` 파일 작성 후 `pm2 start ecosystem.config.js` 실행
 ```js
 module.exports = {
   apps: [
@@ -87,7 +87,7 @@ module.exports = {
       merge_logs: true,
       watch: true,
       watch_delay: 1000,
-      ignore_watch: ['cli.js', 'config/app.config.yaml', '*.ndjson'],
+      ignore_watch: ['cli.js', 'config/*', '*.ndjson'],
       user: "user_web", //실행할 유저명
       output: '/var/log/pm2/git-webhook/out.log',
       error: '/var/log/pm2/git-webhook/error.log',
@@ -105,3 +105,7 @@ $ npm run cli
 $ npm run build:cli # 빌드 
 $ node cli.js #실행(dist/ 디렉토리에서 실행)
 ```
+
+### systemctl 등록
+`./samples/webhook.service`파일 참고하여 `/etc/systemd/system/webhook.service`파일 작성 후 `systemctl start webhook.service`로 실행  
+자동실행 등록하고 싶은 경우 `systemctl enable webhook.service`로 등록
