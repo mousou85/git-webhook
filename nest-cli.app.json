@@ -3,11 +3,21 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
+    "builder": {
+      "type": "swc",
+      "options": {
+        "swcrcPath": ".swcrc"
+      }
+    },
+    "typeCheck": true,
     "deleteOutDir": false,
-    "webpack": true,
     "watchAssets": true,
     "assets": [
-      {"include":  "../config/*", "exclude": "../config/*.sample", "outDir":  "dist/config"}
+      {
+        "include": "../config/*",
+        "exclude": "../config/*.sample",
+        "outDir": "dist/config"
+      }
     ]
   }
 }
