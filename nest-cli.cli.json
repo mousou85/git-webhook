@@ -4,8 +4,6 @@
   "sourceRoot": "src",
   "entryFile": "cli",
   "compilerOptions": {
-    "builder": "swc",
-    "typeCheck": true,
     "deleteOutDir": false,
     "webpack": true,
     "watchAssets": true,
